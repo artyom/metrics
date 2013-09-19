@@ -1,6 +1,6 @@
 package metrics
 
-// Healthchecks hold an os.Error value describing an arbitrary up/down status.
+// Healthchecks hold an error value describing an arbitrary up/down status.
 type Healthcheck interface {
 	// Update the healthcheck's status.
 	Check()
