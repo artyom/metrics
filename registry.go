@@ -1,6 +1,9 @@
 package metrics
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 // A Registry holds references to a set of metrics by name and can iterate
 // over them, calling callback functions provided by the user.
@@ -51,7 +54,9 @@ func (r *registry) Register(name string, i interface{}) {
 		r.mutex.Lock()
 		defer r.mutex.Unlock()
 		r.metrics[name] = i
+		return
 	}
+	panic(fmt.Sprintf("unknown metric type: %T", i))
 }
 
 func (r *registry) RunHealthchecks() {
