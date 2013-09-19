@@ -1,9 +1,6 @@
 package metrics
 
 // Healthchecks hold an os.Error value describing an arbitrary up/down status.
-//
-// This is an interface so as to encourage other structs to implement
-// the Healthcheck API as appropriate.
 type Healthcheck interface {
 	// Update the healthcheck's status.
 	Check()

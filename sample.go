@@ -12,9 +12,6 @@ const rescaleThreshold = 1e9 * 60 * 60
 
 // Samples maintain a statistically-significant selection of values from
 // a stream.
-//
-// This is an interface so as to encourage other structs to implement
-// the Sample API as appropriate.
 type Sample interface {
 	// Clear all samples.
 	Clear()

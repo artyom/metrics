@@ -8,9 +8,6 @@ import (
 )
 
 // Histograms calculate distribution statistics from an int64 value.
-//
-// This is an interface so as to encourage other structs to implement
-// the Histogram API as appropriate.
 type Histogram interface {
 	// Clear the histogram.
 	Clear()
