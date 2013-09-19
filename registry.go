@@ -9,16 +9,16 @@ type Registry interface {
 	Each(func(string, interface{}))
 
 	// Get the metric by the given name or nil if none is registered.
-	Get(string) interface{}
+	Get(name string) interface{}
 
 	// Register the given metric under the given name.
-	Register(string, interface{})
+	Register(name string, metric interface{})
 
 	// Run all registered healthchecks.
 	RunHealthchecks()
 
 	// Unregister the metric with the given name.
-	Unregister(string)
+	Unregister(name string)
 }
 
 // The standard implementation of a Registry is a mutex-protected map

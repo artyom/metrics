@@ -9,7 +9,7 @@ type Meter interface {
 	Count() int64
 
 	// Mark the occurance of n events.
-	Mark(int64)
+	Mark(n int64)
 
 	// Return the meter's one-minute moving average rate of events.
 	Rate1() float64

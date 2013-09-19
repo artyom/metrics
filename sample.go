@@ -20,7 +20,7 @@ type Sample interface {
 	Size() int
 
 	// Update the sample with a new value.
-	Update(int64)
+	Update(value int64)
 
 	// Return all the values in the sample.
 	Values() []int64

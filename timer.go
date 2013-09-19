@@ -17,10 +17,10 @@ type Timer interface {
 	Min() int64
 
 	// Return an arbitrary percentile of all values seen.
-	Percentile(float64) float64
+	Percentile(p float64) float64
 
 	// Return a slice of arbitrary percentiles of all values seen.
-	Percentiles([]float64) []float64
+	Percentiles(ps []float64) []float64
 
 	// Return the meter's one-minute moving average rate of events.
 	Rate1() float64
@@ -41,10 +41,10 @@ type Timer interface {
 	Time(func())
 
 	// Record the duration of an event.
-	Update(time.Duration)
+	Update(d time.Duration)
 
 	// Record the duration of an event that started at a time and ends now.
-	UpdateSince(time.Time)
+	UpdateSince(t time.Time)
 }
 
 // The standard implementation of a Timer uses a Histogram and Meter directly.

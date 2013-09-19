@@ -12,7 +12,7 @@ type Healthcheck interface {
 	Healthy()
 
 	// Mark the healthcheck as unhealthy.  The error should provide details.
-	Unhealthy(error)
+	Unhealthy(err error)
 }
 
 // The standard implementation of a Healthcheck stores the status and a

@@ -11,10 +11,10 @@ type Counter interface {
 	Count() int64
 
 	// Decrement the counter by the given amount.
-	Dec(int64)
+	Dec(amount int64)
 
 	// Increment the counter by the given amount.
-	Inc(int64)
+	Inc(amount int64)
 }
 
 // The standard implementation of a Counter uses the sync/atomic package

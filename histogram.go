@@ -26,18 +26,18 @@ type Histogram interface {
 
 	// Return an arbitrary percentile of all values seen since the histogram was
 	// last cleared.
-	Percentile(float64) float64
+	Percentile(p float64) float64
 
 	// Return a slice of arbitrary percentiles of all values seen since the
 	// histogram was last cleared.
-	Percentiles([]float64) []float64
+	Percentiles(ps []float64) []float64
 
 	// Return the standard deviation of all values seen since the histogram was
 	// last cleared.
 	StdDev() float64
 
 	// Update the histogram with a new value.
-	Update(int64)
+	Update(value int64)
 
 	// Return the variance of all values seen since the histogram was last cleared.
 	Variance() float64

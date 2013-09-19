@@ -5,7 +5,7 @@ import "sync/atomic"
 // Gauges hold an int64 value that can be set arbitrarily.
 type Gauge interface {
 	// Update the gauge's value.
-	Update(int64)
+	Update(value int64)
 
 	// Return the gauge's current value.
 	Value() int64

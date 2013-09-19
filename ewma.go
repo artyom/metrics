@@ -16,7 +16,7 @@ type EWMA interface {
 	Tick()
 
 	// Add n uncounted events.
-	Update(int64)
+	Update(n int64)
 }
 
 // The standard implementation of an EWMA tracks the number of uncounted
