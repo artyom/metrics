@@ -5,44 +5,44 @@ package metrics
 // This is an interface so as to encourage other structs to implement
 // the Healthcheck API as appropriate.
 type Healthcheck interface {
+	// Update the healthcheck's status.
 	Check()
+
+	// Return the healthcheck's status, which will be nil if it is healthy.
 	Error() error
+
+	// Mark the healthcheck as healthy.
 	Healthy()
+
+	// Mark the healthcheck as unhealthy.  The error should provide details.
 	Unhealthy(error)
 }
 
 // The standard implementation of a Healthcheck stores the status and a
 // function to call to update the status.
-type StandardHealthcheck struct {
+type healthcheck struct {
 	err error
 	f   func(Healthcheck)
 }
 
-// Force the compiler to check that StandardHealthcheck implements Healthcheck.
-var _ Healthcheck = &StandardHealthcheck{}
-
 // Create a new healthcheck, which will use the given function to update
 // its status.
-func NewHealthcheck(f func(Healthcheck)) *StandardHealthcheck {
-	return &StandardHealthcheck{nil, f}
+func NewHealthcheck(f func(Healthcheck)) Healthcheck {
+	return &healthcheck{nil, f}
 }
 
-// Update the healthcheck's status.
-func (h *StandardHealthcheck) Check() {
+func (h *healthcheck) Check() {
 	h.f(h)
 }
 
-// Return the healthcheck's status, which will be nil if it is healthy.
-func (h *StandardHealthcheck) Error() error {
+func (h *healthcheck) Error() error {
 	return h.err
 }
 
-// Mark the healthcheck as healthy.
-func (h *StandardHealthcheck) Healthy() {
+func (h *healthcheck) Healthy() {
 	h.err = nil
 }
 
-// Mark the healthcheck as unhealthy.  The error should provide details.
-func (h *StandardHealthcheck) Unhealthy(err error) {
+func (h *healthcheck) Unhealthy(err error) {
 	h.err = err
 }

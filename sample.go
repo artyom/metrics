@@ -16,9 +16,16 @@ const rescaleThreshold = 1e9 * 60 * 60
 // This is an interface so as to encourage other structs to implement
 // the Sample API as appropriate.
 type Sample interface {
+	// Clear all samples.
 	Clear()
+
+	// Return the size of the sample, which is at most the reservoir size.
 	Size() int
+
+	// Update the sample with a new value.
 	Update(int64)
+
+	// Return all the values in the sample.
 	Values() []int64
 }
 
@@ -27,62 +34,56 @@ type Sample interface {
 // Model for Streaming Systems".
 //
 // <http://www.research.att.com/people/Cormode_Graham/library/publications/CormodeShkapenyukSrivastavaXu09.pdf>
-type ExpDecaySample struct {
+type expDecaySample struct {
 	alpha         float64
 	mutex         sync.Mutex
 	reservoirSize int
 	t0, t1        time.Time
-	values        expDecaySampleHeap
+	values        expDecayIndividualSampleHeap
 }
-
-// Force the compiler to check that ExpDecaySample implements Sample.
-var _ Sample = &ExpDecaySample{}
 
 // Create a new exponentially-decaying sample with the given reservoir size
 // and alpha.
-func NewExpDecaySample(reservoirSize int, alpha float64) *ExpDecaySample {
-	s := &ExpDecaySample{
+func NewExpDecaySample(reservoirSize int, alpha float64) Sample {
+	s := &expDecaySample{
 		alpha:         alpha,
 		reservoirSize: reservoirSize,
 		t0:            time.Now(),
-		values:        make(expDecaySampleHeap, 0, reservoirSize),
+		values:        make(expDecayIndividualSampleHeap, 0, reservoirSize),
 	}
 	s.t1 = time.Now().Add(rescaleThreshold)
 	return s
 }
 
-// Clear all samples.
-func (s *ExpDecaySample) Clear() {
+func (s *expDecaySample) Clear() {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	s.values = make(expDecaySampleHeap, 0, s.reservoirSize)
+	s.values = make(expDecayIndividualSampleHeap, 0, s.reservoirSize)
 	s.t0 = time.Now()
 	s.t1 = s.t0.Add(rescaleThreshold)
 }
 
-// Return the size of the sample, which is at most the reservoir size.
-func (s *ExpDecaySample) Size() int {
+func (s *expDecaySample) Size() int {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	return len(s.values)
 }
 
-// Update the sample with a new value.
-func (s *ExpDecaySample) Update(v int64) {
+func (s *expDecaySample) Update(v int64) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	if len(s.values) == s.reservoirSize {
 		heap.Pop(&s.values)
 	}
 	t := time.Now()
-	heap.Push(&s.values, expDecaySample{
+	heap.Push(&s.values, expDecayIndividualSample{
 		k: math.Exp(t.Sub(s.t0).Seconds()*s.alpha) / rand.Float64(),
 		v: v,
 	})
 	if t.After(s.t1) {
 		values := s.values
 		t0 := s.t0
-		s.values = make(expDecaySampleHeap, 0, s.reservoirSize)
+		s.values = make(expDecayIndividualSampleHeap, 0, s.reservoirSize)
 		s.t0 = t
 		s.t1 = s.t0.Add(rescaleThreshold)
 		for _, v := range values {
@@ -92,8 +93,7 @@ func (s *ExpDecaySample) Update(v int64) {
 	}
 }
 
-// Return all the values in the sample.
-func (s *ExpDecaySample) Values() []int64 {
+func (s *expDecaySample) Values() []int64 {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	values := make([]int64, len(s.values))
@@ -106,33 +106,30 @@ func (s *ExpDecaySample) Values() []int64 {
 // A uniform sample using Vitter's Algorithm R.
 //
 // <http://www.cs.umd.edu/~samir/498/vitter.pdf>
-type UniformSample struct {
+type uniformSample struct {
 	mutex         sync.Mutex
 	reservoirSize int
 	values        []int64
 }
 
 // Create a new uniform sample with the given reservoir size.
-func NewUniformSample(reservoirSize int) *UniformSample {
-	return &UniformSample{reservoirSize: reservoirSize}
+func NewUniformSample(reservoirSize int) Sample {
+	return &uniformSample{reservoirSize: reservoirSize}
 }
 
-// Clear all samples.
-func (s *UniformSample) Clear() {
+func (s *uniformSample) Clear() {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.values = make([]int64, 0, s.reservoirSize)
 }
 
-// Return the size of the sample, which is at most the reservoir size.
-func (s *UniformSample) Size() int {
+func (s *uniformSample) Size() int {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	return len(s.values)
 }
 
-// Update the sample with a new value.
-func (s *UniformSample) Update(v int64) {
+func (s *uniformSample) Update(v int64) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	if len(s.values) < s.reservoirSize {
@@ -142,8 +139,7 @@ func (s *UniformSample) Update(v int64) {
 	}
 }
 
-// Return all the values in the sample.
-func (s *UniformSample) Values() []int64 {
+func (s *uniformSample) Values() []int64 {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	values := make([]int64, len(s.values))
@@ -152,23 +148,23 @@ func (s *UniformSample) Values() []int64 {
 }
 
 // An individual sample.
-type expDecaySample struct {
+type expDecayIndividualSample struct {
 	k float64
 	v int64
 }
 
 // A min-heap of samples.
-type expDecaySampleHeap []expDecaySample
+type expDecayIndividualSampleHeap []expDecayIndividualSample
 
-func (q expDecaySampleHeap) Len() int {
+func (q expDecayIndividualSampleHeap) Len() int {
 	return len(q)
 }
 
-func (q expDecaySampleHeap) Less(i, j int) bool {
+func (q expDecayIndividualSampleHeap) Less(i, j int) bool {
 	return q[i].k < q[j].k
 }
 
-func (q *expDecaySampleHeap) Pop() interface{} {
+func (q *expDecayIndividualSampleHeap) Pop() interface{} {
 	q_ := *q
 	n := len(q_)
 	i := q_[n-1]
@@ -177,14 +173,14 @@ func (q *expDecaySampleHeap) Pop() interface{} {
 	return i
 }
 
-func (q *expDecaySampleHeap) Push(x interface{}) {
+func (q *expDecayIndividualSampleHeap) Push(x interface{}) {
 	q_ := *q
 	n := len(q_)
 	q_ = q_[0 : n+1]
-	q_[n] = x.(expDecaySample)
+	q_[n] = x.(expDecayIndividualSample)
 	*q = q_
 }
 
-func (q expDecaySampleHeap) Swap(i, j int) {
+func (q expDecayIndividualSampleHeap) Swap(i, j int) {
 	q[i], q[j] = q[j], q[i]
 }

@@ -12,35 +12,54 @@ import (
 // This is an interface so as to encourage other structs to implement
 // the Histogram API as appropriate.
 type Histogram interface {
+	// Clear the histogram.
 	Clear()
+
+	// Return the count of inputs since the histogram was last cleared.
 	Count() int64
+
+	// Return the maximal value seen since the histogram was last cleared.
 	Max() int64
+
+	// Return the mean of all values seen since the histogram was last cleared.
 	Mean() float64
+
+	// Return the minimal value seen since the histogram was last cleared.
 	Min() int64
+
+	// Return an arbitrary percentile of all values seen since the histogram was
+	// last cleared.
 	Percentile(float64) float64
+
+	// Return a slice of arbitrary percentiles of all values seen since the
+	// histogram was last cleared.
 	Percentiles([]float64) []float64
+
+	// Return the standard deviation of all values seen since the histogram was
+	// last cleared.
 	StdDev() float64
+
+	// Update the histogram with a new value.
 	Update(int64)
+
+	// Return the variance of all values seen since the histogram was last cleared.
 	Variance() float64
 }
 
 // The standard implementation of a Histogram uses a Sample and a goroutine
 // to synchronize its calculations.
-type StandardHistogram struct {
+type histogram struct {
 	count, sum, min, max int64
 	mutex                sync.Mutex
 	s                    Sample
 	variance             [2]float64
 }
 
-// Force the compiler to check that StandardHistogram implements Histogram.
-var _ Histogram = &StandardHistogram{}
-
 // Create a new histogram with the given Sample.  The initial values compare
 // so that the first value will be both min and max and the variance is flagged
 // for special treatment on its first iteration.
-func NewHistogram(s Sample) *StandardHistogram {
-	return &StandardHistogram{
+func NewHistogram(s Sample) Histogram {
+	return &histogram{
 		max:      math.MinInt64,
 		min:      math.MaxInt64,
 		s:        s,
@@ -48,8 +67,7 @@ func NewHistogram(s Sample) *StandardHistogram {
 	}
 }
 
-// Clear the histogram.
-func (h *StandardHistogram) Clear() {
+func (h *histogram) Clear() {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	h.count = 0
@@ -60,13 +78,11 @@ func (h *StandardHistogram) Clear() {
 	h.variance = [...]float64{-1.0, 0.0}
 }
 
-// Return the count of inputs since the histogram was last cleared.
-func (h *StandardHistogram) Count() int64 {
+func (h *histogram) Count() int64 {
 	return atomic.LoadInt64(&h.count)
 }
 
-// Return the maximal value seen since the histogram was last cleared.
-func (h *StandardHistogram) Max() int64 {
+func (h *histogram) Max() int64 {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	if 0 == h.count {
@@ -75,8 +91,7 @@ func (h *StandardHistogram) Max() int64 {
 	return h.max
 }
 
-// Return the mean of all values seen since the histogram was last cleared.
-func (h *StandardHistogram) Mean() float64 {
+func (h *histogram) Mean() float64 {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	if 0 == h.count {
@@ -85,8 +100,7 @@ func (h *StandardHistogram) Mean() float64 {
 	return float64(h.sum) / float64(h.count)
 }
 
-// Return the minimal value seen since the histogram was last cleared.
-func (h *StandardHistogram) Min() int64 {
+func (h *histogram) Min() int64 {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	if 0 == h.count {
@@ -95,15 +109,11 @@ func (h *StandardHistogram) Min() int64 {
 	return h.min
 }
 
-// Return an arbitrary percentile of all values seen since the histogram was
-// last cleared.
-func (h *StandardHistogram) Percentile(p float64) float64 {
+func (h *histogram) Percentile(p float64) float64 {
 	return h.Percentiles([]float64{p})[0]
 }
 
-// Return a slice of arbitrary percentiles of all values seen since the
-// histogram was last cleared.
-func (h *StandardHistogram) Percentiles(ps []float64) []float64 {
+func (h *histogram) Percentiles(ps []float64) []float64 {
 	scores := make([]float64, len(ps))
 	values := int64Slice(h.s.Values())
 	size := len(values)
@@ -125,14 +135,11 @@ func (h *StandardHistogram) Percentiles(ps []float64) []float64 {
 	return scores
 }
 
-// Return the standard deviation of all values seen since the histogram was
-// last cleared.
-func (h *StandardHistogram) StdDev() float64 {
+func (h *histogram) StdDev() float64 {
 	return math.Sqrt(h.Variance())
 }
 
-// Update the histogram with a new value.
-func (h *StandardHistogram) Update(v int64) {
+func (h *histogram) Update(v int64) {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	h.s.Update(v)
@@ -156,8 +163,7 @@ func (h *StandardHistogram) Update(v int64) {
 	}
 }
 
-// Return the variance of all values seen since the histogram was last cleared.
-func (h *StandardHistogram) Variance() float64 {
+func (h *histogram) Variance() float64 {
 	h.mutex.Lock()
 	defer h.mutex.Unlock()
 	if 1 >= h.count {
