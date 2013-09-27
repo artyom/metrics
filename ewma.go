@@ -4,7 +4,12 @@ import (
 	"math"
 	"sync"
 	"sync/atomic"
+	"time"
 )
+
+// Tick Rate defines the expected rate at which Tick() gets called for EWMA and
+// things that rely on EWMA like Meter & Timer.
+const TickRate = 5 * time.Second
 
 // EWMAs continuously calculate an exponentially-weighted moving average
 // based on an outside source of clock ticks.
@@ -59,7 +64,7 @@ func (a *ewma) Rate() float64 {
 func (a *ewma) Tick() {
 	count := atomic.LoadInt64(&a.uncounted)
 	atomic.AddInt64(&a.uncounted, -count)
-	instantRate := float64(count) / float64(5e9)
+	instantRate := float64(count) / float64(TickRate)
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 	if a.init {
