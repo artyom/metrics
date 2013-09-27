@@ -46,7 +46,7 @@ func NewMeter() Meter {
 	m := &meter{
 		make(chan int64),
 		make(chan meterV),
-		time.NewTicker(5e9),
+		time.NewTicker(5 * time.Second),
 	}
 	go m.arbiter()
 	return m
@@ -85,22 +85,26 @@ func (m *meter) arbiter() {
 	a5 := NewEWMA5()
 	a15 := NewEWMA15()
 	t := time.Now()
+	set := func() {
+		mv.rate1 = a1.Rate()
+		mv.rate5 = a5.Rate()
+		mv.rate15 = a15.Rate()
+		mv.rateMean = float64(1e9*mv.count) / float64(time.Since(t))
+	}
 	for {
 		select {
 		case n := <-m.in:
 			mv.count += n
 			a1.Update(n)
-			mv.rate1 = a1.Rate()
 			a5.Update(n)
-			mv.rate5 = a5.Rate()
 			a15.Update(n)
-			mv.rate15 = a15.Rate()
-			mv.rateMean = float64(1e9*mv.count) / float64(time.Since(t))
+			set()
 		case m.out <- mv:
 		case <-m.ticker.C:
 			a1.Tick()
 			a5.Tick()
 			a15.Tick()
+			set()
 		}
 	}
 }
