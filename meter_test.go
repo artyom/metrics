@@ -1,16 +1,20 @@
-package metrics
+package metrics_test
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/daaku/go.metrics"
+)
 
 func TestMeterZero(t *testing.T) {
-	m := NewMeter()
+	m := metrics.NewMeter()
 	if count := m.Count(); 0 != count {
 		t.Errorf("m.Count(): 0 != %v\n", count)
 	}
 }
 
 func TestMeterNonzero(t *testing.T) {
-	m := NewMeter()
+	m := metrics.NewMeter()
 	m.Mark(3)
 	if count := m.Count(); 3 != count {
 		t.Errorf("m.Count(): 3 != %v\n", count)
@@ -18,7 +22,7 @@ func TestMeterNonzero(t *testing.T) {
 }
 
 func TestMeterRate1(t *testing.T) {
-	m := NewMeter()
+	m := metrics.NewMeter()
 	m.Mark(3)
 	m.Tick()
 	const expected = 0.6

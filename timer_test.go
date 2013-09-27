@@ -1,13 +1,15 @@
-package metrics
+package metrics_test
 
 import (
 	"math"
 	"testing"
 	"time"
+
+	"github.com/daaku/go.metrics"
 )
 
 func TestTimerZero(t *testing.T) {
-	tm := NewTimer()
+	tm := metrics.NewTimer()
 	if count := tm.Count(); 0 != count {
 		t.Errorf("tm.Count(): 0 != %v\n", count)
 	}
@@ -48,7 +50,7 @@ func TestTimerZero(t *testing.T) {
 }
 
 func TestTimerExtremes(t *testing.T) {
-	tm := NewTimer()
+	tm := metrics.NewTimer()
 	tm.Update(math.MaxInt64)
 	tm.Update(0)
 	if stdDev := tm.StdDev(); 6.521908912666392e18 != stdDev {
@@ -57,7 +59,7 @@ func TestTimerExtremes(t *testing.T) {
 }
 
 func TestTimerFunc(t *testing.T) {
-	tm := NewTimer()
+	tm := metrics.NewTimer()
 	tm.Time(func() { time.Sleep(50e6) })
 	if max := tm.Max(); 45e6 > max || max > 55e6 {
 		t.Errorf("tm.Max(): 45e6 > %v || %v > 55e6\n", max, max)
@@ -65,7 +67,7 @@ func TestTimerFunc(t *testing.T) {
 }
 
 func TestTimerRate1(t *testing.T) {
-	tm := NewTimer()
+	tm := metrics.NewTimer()
 	tm.Update(3 * time.Second)
 	tm.Tick()
 	const expected = 0.2

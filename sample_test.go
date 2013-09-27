@@ -1,37 +1,39 @@
-package metrics
+package metrics_test
 
 import (
 	"runtime"
 	"testing"
 	"time"
+
+	"github.com/daaku/go.metrics"
 )
 
 func BenchmarkExpDecaySample257(b *testing.B) {
-	benchmarkSample(b, NewExpDecaySample(257, 0.015))
+	benchmarkSample(b, metrics.NewExpDecaySample(257, 0.015))
 }
 
 func BenchmarkExpDecaySample514(b *testing.B) {
-	benchmarkSample(b, NewExpDecaySample(514, 0.015))
+	benchmarkSample(b, metrics.NewExpDecaySample(514, 0.015))
 }
 
 func BenchmarkExpDecaySample1028(b *testing.B) {
-	benchmarkSample(b, NewExpDecaySample(1028, 0.015))
+	benchmarkSample(b, metrics.NewExpDecaySample(1028, 0.015))
 }
 
 func BenchmarkUniformSample257(b *testing.B) {
-	benchmarkSample(b, NewUniformSample(257))
+	benchmarkSample(b, metrics.NewUniformSample(257))
 }
 
 func BenchmarkUniformSample514(b *testing.B) {
-	benchmarkSample(b, NewUniformSample(514))
+	benchmarkSample(b, metrics.NewUniformSample(514))
 }
 
 func BenchmarkUniformSample1028(b *testing.B) {
-	benchmarkSample(b, NewUniformSample(1028))
+	benchmarkSample(b, metrics.NewUniformSample(1028))
 }
 
 func TestExpDecaySample10(t *testing.T) {
-	s := NewExpDecaySample(100, 0.99)
+	s := metrics.NewExpDecaySample(100, 0.99)
 	for i := 0; i < 10; i++ {
 		s.Update(int64(i))
 	}
@@ -49,7 +51,7 @@ func TestExpDecaySample10(t *testing.T) {
 }
 
 func TestExpDecaySample100(t *testing.T) {
-	s := NewExpDecaySample(1000, 0.01)
+	s := metrics.NewExpDecaySample(1000, 0.01)
 	for i := 0; i < 100; i++ {
 		s.Update(int64(i))
 	}
@@ -67,7 +69,7 @@ func TestExpDecaySample100(t *testing.T) {
 }
 
 func TestExpDecaySample1000(t *testing.T) {
-	s := NewExpDecaySample(100, 0.99)
+	s := metrics.NewExpDecaySample(100, 0.99)
 	for i := 0; i < 1000; i++ {
 		s.Update(int64(i))
 	}
@@ -89,7 +91,7 @@ func TestExpDecaySample1000(t *testing.T) {
 // The priority becomes +Inf quickly after starting if this is done,
 // effectively freezing the set of samples until a rescale step happens.
 func TestExpDecaySampleNanosecondRegression(t *testing.T) {
-	s := NewExpDecaySample(100, 0.99)
+	s := metrics.NewExpDecaySample(100, 0.99)
 
 	for i := 0; i < 100; i++ {
 		s.Update(10)
@@ -115,7 +117,7 @@ func TestExpDecaySampleNanosecondRegression(t *testing.T) {
 }
 
 func TestUniformSample(t *testing.T) {
-	s := NewUniformSample(100)
+	s := metrics.NewUniformSample(100)
 	for i := 0; i < 1000; i++ {
 		s.Update(int64(i))
 	}
@@ -133,7 +135,7 @@ func TestUniformSample(t *testing.T) {
 }
 
 func TestUniformSampleIncludesTail(t *testing.T) {
-	s := NewUniformSample(100)
+	s := metrics.NewUniformSample(100)
 	max := 100
 
 	for i := 0; i < max; i++ {
@@ -153,7 +155,7 @@ func TestUniformSampleIncludesTail(t *testing.T) {
 	}
 }
 
-func benchmarkSample(b *testing.B, s Sample) {
+func benchmarkSample(b *testing.B, s metrics.Sample) {
 	b.StopTimer()
 	var memStats runtime.MemStats
 	var pauseTotalNs uint64
