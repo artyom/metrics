@@ -27,7 +27,7 @@ type ewma struct {
 	rate      float64
 	uncounted int64
 	init      bool
-	mutex     sync.Mutex
+	mutex     sync.RWMutex
 }
 
 // Create a new EWMA with the given alpha.
@@ -51,8 +51,8 @@ func NewEWMA15() EWMA {
 }
 
 func (a *ewma) Rate() float64 {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
+	a.mutex.RLock()
+	defer a.mutex.RUnlock()
 	return a.rate * float64(1e9)
 }
 
