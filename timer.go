@@ -45,6 +45,9 @@ type Timer interface {
 
 	// Record the duration of an event that started at a time and ends now.
 	UpdateSince(t time.Time)
+
+	// Tick the clock to update the moving average.
+	Tick()
 }
 
 // The standard implementation of a Timer uses a Histogram and Meter directly.
@@ -126,4 +129,8 @@ func (t *timer) Update(d time.Duration) {
 func (t *timer) UpdateSince(ts time.Time) {
 	t.h.Update(int64(time.Since(ts)))
 	t.m.Mark(1)
+}
+
+func (t *timer) Tick() {
+	t.m.Tick()
 }

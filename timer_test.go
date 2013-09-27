@@ -63,3 +63,13 @@ func TestTimerFunc(t *testing.T) {
 		t.Errorf("tm.Max(): 45e6 > %v || %v > 55e6\n", max, max)
 	}
 }
+
+func TestTimerRate1(t *testing.T) {
+	tm := NewTimer()
+	tm.Update(3 * time.Second)
+	tm.Tick()
+	const expected = 0.2
+	if r1 := tm.Rate1(); r1 != expected {
+		t.Errorf("tm.Rate1(): %v != %v\n", expected, r1)
+	}
+}
