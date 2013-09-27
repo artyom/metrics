@@ -14,6 +14,9 @@ type Meter interface {
 	// Mark the occurance of n events.
 	Mark(n int64)
 
+	// Tick the clock to update the moving average.
+	Tick()
+
 	// Return the meter's one-minute moving average rate of events.
 	Rate1() float64
 
@@ -25,9 +28,6 @@ type Meter interface {
 
 	// Return the meter's mean rate of events.
 	RateMean() float64
-
-	// Tick the clock to update the moving average.
-	Tick()
 }
 
 // Create a new meter.
@@ -65,6 +65,14 @@ func (m *meter) Mark(n int64) {
 	m.rate15.Update(n)
 }
 
+func (m *meter) Tick() {
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	m.rate1.Tick()
+	m.rate5.Tick()
+	m.rate15.Tick()
+}
+
 func (m *meter) Rate1() float64 {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
@@ -87,12 +95,4 @@ func (m *meter) RateMean() float64 {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
 	return float64(1e9*m.count) / float64(time.Since(m.start))
-}
-
-func (m *meter) Tick() {
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-	m.rate1.Tick()
-	m.rate5.Tick()
-	m.rate15.Tick()
 }
