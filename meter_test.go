@@ -1,9 +1,6 @@
 package metrics
 
-import (
-	"testing"
-	"time"
-)
+import "testing"
 
 func TestMeterZero(t *testing.T) {
 	m := NewMeter()
@@ -23,8 +20,9 @@ func TestMeterNonzero(t *testing.T) {
 func TestMeterRate1(t *testing.T) {
 	m := NewMeter()
 	m.Mark(3)
-	time.Sleep(6 * time.Second)
-	if r1 := m.Rate1(); r1 == 0 {
-		t.Fatal("m.Rate1() was 0")
+	m.Tick()
+	const expected = 0.6
+	if r1 := m.Rate1(); r1 != expected {
+		t.Errorf("m.Rate1(): %v != %v\n", expected, r1)
 	}
 }
