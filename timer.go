@@ -37,8 +37,13 @@ type Timer interface {
 	// Return the standard deviation of all values seen.
 	StdDev() float64
 
-	// Record the duration of the execution of the given function.
-	Time(func())
+	// Start captures the current time and returns a value which implements Stop
+	// to log the elapsed time. It should be used like:
+	//
+	//     defer timer.Start().Stop()
+	Start() interface {
+		Stop()
+	}
 
 	// Record the duration of an event.
 	Update(d time.Duration)
@@ -48,6 +53,15 @@ type Timer interface {
 
 	// Tick the clock to update the moving average.
 	Tick()
+}
+
+type capture struct {
+	timer Timer
+	start time.Time
+}
+
+func (c *capture) Stop() {
+	c.timer.UpdateSince(c.start)
 }
 
 // The standard implementation of a Timer uses a Histogram and Meter directly.
@@ -115,10 +129,13 @@ func (t *timer) StdDev() float64 {
 	return t.h.StdDev()
 }
 
-func (t *timer) Time(f func()) {
-	ts := time.Now()
-	f()
-	t.Update(time.Since(ts))
+func (t *timer) Start() interface {
+	Stop()
+} {
+	return &capture{
+		start: time.Now(),
+		timer: t,
+	}
 }
 
 func (t *timer) Update(d time.Duration) {

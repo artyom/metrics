@@ -58,9 +58,12 @@ func TestTimerExtremes(t *testing.T) {
 	}
 }
 
-func TestTimerFunc(t *testing.T) {
+func TestTimerStartStop(t *testing.T) {
 	tm := metrics.NewTimer()
-	tm.Time(func() { time.Sleep(50e6) })
+	func() {
+		defer tm.Start().Stop()
+		time.Sleep(50e6)
+	}()
 	if max := tm.Max(); 45e6 > max || max > 55e6 {
 		t.Errorf("tm.Max(): 45e6 > %v || %v > 55e6\n", max, max)
 	}
