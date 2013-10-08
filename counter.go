@@ -11,10 +11,10 @@ type Counter interface {
 	Count() int64
 
 	// Decrement the counter by the given amount.
-	Dec(amount int64)
+	Dec(amount int64) Counter
 
 	// Increment the counter by the given amount.
-	Inc(amount int64)
+	Inc(amount int64) Counter
 }
 
 // The standard implementation of a Counter uses the sync/atomic package
@@ -36,10 +36,12 @@ func (c *counter) Count() int64 {
 	return atomic.LoadInt64(&c.count)
 }
 
-func (c *counter) Dec(i int64) {
+func (c *counter) Dec(i int64) Counter {
 	atomic.AddInt64(&c.count, -i)
+	return c
 }
 
-func (c *counter) Inc(i int64) {
+func (c *counter) Inc(i int64) Counter {
 	atomic.AddInt64(&c.count, i)
+	return c
 }

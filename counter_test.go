@@ -53,3 +53,13 @@ func TestCounterClear(t *testing.T) {
 		t.Errorf("c.Count(): 0 != %v\n", count)
 	}
 }
+
+func TestCounterIncDec(t *testing.T) {
+	c := metrics.NewCounter()
+	func() {
+		defer c.Inc(2).Dec(1)
+	}()
+	if count := c.Count(); 1 != count {
+		t.Errorf("c.Count(): 1 != %v\n", count)
+	}
+}
