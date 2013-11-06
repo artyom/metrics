@@ -3,7 +3,7 @@ package metrics_test
 import (
 	"testing"
 
-	"github.com/daaku/go.metrics"
+	"github.com/ParsePlatform/go.metrics"
 )
 
 func TestGauge(t *testing.T) {
