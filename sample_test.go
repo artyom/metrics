@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ParsePlatform/go.metrics"
+	"github.com/facebookgo/metrics"
 )
 
 func BenchmarkExpDecaySample257(b *testing.B) {

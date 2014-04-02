@@ -3,7 +3,7 @@ package metrics_test
 import (
 	"testing"
 
-	"github.com/ParsePlatform/go.metrics"
+	"github.com/facebookgo/metrics"
 )
 
 func TestCounterZero(t *testing.T) {
