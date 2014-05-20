@@ -33,7 +33,7 @@ type Sample interface {
 // <http://www.research.att.com/people/Cormode_Graham/library/publications/CormodeShkapenyukSrivastavaXu09.pdf>
 type expDecaySample struct {
 	alpha         float64
-	mutex         sync.Mutex
+	mutex         sync.RWMutex
 	reservoirSize int
 	t0, t1        time.Time
 	values        expDecayIndividualSampleHeap
@@ -61,8 +61,8 @@ func (s *expDecaySample) Clear() {
 }
 
 func (s *expDecaySample) Size() int {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 	return len(s.values)
 }
 
@@ -91,8 +91,8 @@ func (s *expDecaySample) Update(v int64) {
 }
 
 func (s *expDecaySample) Values() []int64 {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 	values := make([]int64, len(s.values))
 	for i, v := range s.values {
 		values[i] = v.v
@@ -104,7 +104,7 @@ func (s *expDecaySample) Values() []int64 {
 //
 // <http://www.cs.umd.edu/~samir/498/vitter.pdf>
 type uniformSample struct {
-	mutex         sync.Mutex
+	mutex         sync.RWMutex
 	reservoirSize int
 	count         int64
 	values        []int64
@@ -126,8 +126,8 @@ func (s *uniformSample) Clear() {
 }
 
 func (s *uniformSample) Size() int {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 	return len(s.values)
 }
 
@@ -146,8 +146,8 @@ func (s *uniformSample) Update(v int64) {
 }
 
 func (s *uniformSample) Values() []int64 {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 	values := make([]int64, len(s.values))
 	copy(values, s.values)
 	return values
