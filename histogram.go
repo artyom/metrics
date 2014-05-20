@@ -4,7 +4,6 @@ import (
 	"math"
 	"sort"
 	"sync"
-	"sync/atomic"
 )
 
 // Histograms calculate distribution statistics from an int64 value.
@@ -76,7 +75,9 @@ func (h *histogram) Clear() {
 }
 
 func (h *histogram) Count() int64 {
-	return atomic.LoadInt64(&h.count)
+	h.mutex.Lock()
+	defer h.mutex.Unlock()
+	return h.count
 }
 
 func (h *histogram) Max() int64 {
