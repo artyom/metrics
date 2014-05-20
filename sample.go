@@ -106,6 +106,7 @@ func (s *expDecaySample) Values() []int64 {
 type uniformSample struct {
 	mutex         sync.Mutex
 	reservoirSize int
+	count         int64
 	values        []int64
 }
 
@@ -120,6 +121,7 @@ func NewUniformSample(reservoirSize int) Sample {
 func (s *uniformSample) Clear() {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+	s.count = 0
 	s.values = make([]int64, 0, s.reservoirSize)
 }
 
@@ -132,10 +134,14 @@ func (s *uniformSample) Size() int {
 func (s *uniformSample) Update(v int64) {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+	s.count++
 	if len(s.values) < s.reservoirSize {
 		s.values = append(s.values, v)
 	} else {
-		s.values[rand.Intn(s.reservoirSize)] = v
+		r := rand.Int63n(s.count)
+		if r < int64(len(s.values)) {
+			s.values[int(r)] = v
+		}
 	}
 }
 
