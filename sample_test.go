@@ -1,6 +1,7 @@
 package metrics_test
 
 import (
+	"math/rand"
 	"runtime"
 	"testing"
 	"time"
@@ -169,4 +170,38 @@ func benchmarkSample(b *testing.B, s metrics.Sample) {
 	runtime.GC()
 	runtime.ReadMemStats(&memStats)
 	b.Logf("GC cost: %d ns/op", int(memStats.PauseTotalNs-pauseTotalNs)/b.N)
+}
+
+// TestHistogramConcurrentUpdateCount would expose data race problems with
+// concurrent Update and Count calls on Sample when test is called with -race
+// argument
+func TestHistogramConcurrentUpdateCount(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping in short mode")
+	}
+	h := metrics.NewHistogram(metrics.NewUniformSample(100))
+	for i := 0; i < 100; i++ {
+		h.Update(int64(i))
+	}
+	start := make(chan struct{})
+	quit := make(chan struct{})
+	go func() {
+		t := time.NewTicker(10 * time.Millisecond)
+		close(start)
+		for {
+			select {
+			case <-t.C:
+				h.Update(rand.Int63())
+			case <-quit:
+				t.Stop()
+				return
+			}
+		}
+	}()
+	<-start // wait for background goroutine to start its job
+	for i := 0; i < 1000; i++ {
+		h.Count()
+		time.Sleep(5 * time.Millisecond)
+	}
+	quit <- struct{}{}
 }
