@@ -100,9 +100,6 @@ func (s *expDecaySample) Values() []int64 {
 	return values
 }
 
-// A uniform sample using Vitter's Algorithm R.
-//
-// <http://www.cs.umd.edu/~samir/498/vitter.pdf>
 type uniformSample struct {
 	mutex         sync.RWMutex
 	reservoirSize int
@@ -111,6 +108,9 @@ type uniformSample struct {
 }
 
 // Create a new uniform sample with the given reservoir size.
+//
+// Sample is using Vitter's Algorithm R:
+// http://www.cs.umd.edu/~samir/498/vitter.pdf
 func NewUniformSample(reservoirSize int) Sample {
 	return &uniformSample{
 		reservoirSize: reservoirSize,
