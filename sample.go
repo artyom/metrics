@@ -111,7 +111,10 @@ type uniformSample struct {
 
 // Create a new uniform sample with the given reservoir size.
 func NewUniformSample(reservoirSize int) Sample {
-	return &uniformSample{reservoirSize: reservoirSize}
+	return &uniformSample{
+		reservoirSize: reservoirSize,
+		values:        make([]int64, 0, reservoirSize),
+	}
 }
 
 func (s *uniformSample) Clear() {
