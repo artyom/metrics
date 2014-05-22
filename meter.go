@@ -94,5 +94,5 @@ func (m *meter) Rate15() float64 {
 func (m *meter) RateMean() float64 {
 	m.mutex.RLock()
 	defer m.mutex.RUnlock()
-	return float64(1e9*m.count) / float64(time.Since(m.start))
+	return float64(m.count) / time.Since(m.start).Seconds()
 }
