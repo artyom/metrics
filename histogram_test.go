@@ -1,20 +1,16 @@
-package metrics_test
+package metrics
 
-import (
-	"testing"
-
-	"github.com/facebookgo/metrics"
-)
+import "testing"
 
 func BenchmarkHistogram(b *testing.B) {
-	h := metrics.NewHistogram(metrics.NewUniformSample(100))
+	h := NewHistogram(NewUniformSample(100))
 	for i := 0; i < b.N; i++ {
 		h.Update(1)
 	}
 }
 
 func TestEmptyHistogram(t *testing.T) {
-	h := metrics.NewHistogram(metrics.NewUniformSample(100))
+	h := NewHistogram(NewUniformSample(100))
 	if count := h.Count(); 0 != count {
 		t.Errorf("h.Count(): 0 != %v\n", count)
 	}
@@ -43,7 +39,7 @@ func TestEmptyHistogram(t *testing.T) {
 }
 
 func TestHistogram10000(t *testing.T) {
-	h := metrics.NewHistogram(metrics.NewUniformSample(100000))
+	h := NewHistogram(NewUniformSample(100000))
 	for i := 1; i <= 10000; i++ {
 		h.Update(int64(i))
 	}

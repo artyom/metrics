@@ -1,13 +1,9 @@
-package metrics_test
+package metrics
 
-import (
-	"testing"
-
-	"github.com/facebookgo/metrics"
-)
+import "testing"
 
 func BenchmarkEWMA(b *testing.B) {
-	a := metrics.NewEWMA1()
+	a := NewEWMA1()
 	for i := 0; i < b.N; i++ {
 		a.Update(1)
 		a.Tick()
@@ -15,7 +11,7 @@ func BenchmarkEWMA(b *testing.B) {
 }
 
 func TestEWMA1(t *testing.T) {
-	a := metrics.NewEWMA1()
+	a := NewEWMA1()
 	a.Update(3)
 	a.Tick()
 	if rate := a.Rate(); 0.6 != rate {
@@ -84,7 +80,7 @@ func TestEWMA1(t *testing.T) {
 }
 
 func TestEWMA5(t *testing.T) {
-	a := metrics.NewEWMA5()
+	a := NewEWMA5()
 	a.Update(3)
 	a.Tick()
 	if rate := a.Rate(); 0.6 != rate {
@@ -153,7 +149,7 @@ func TestEWMA5(t *testing.T) {
 }
 
 func TestEWMA15(t *testing.T) {
-	a := metrics.NewEWMA15()
+	a := NewEWMA15()
 	a.Update(3)
 	a.Tick()
 	if rate := a.Rate(); 0.6 != rate {
@@ -221,7 +217,7 @@ func TestEWMA15(t *testing.T) {
 	}
 }
 
-func elapseMinute(a metrics.EWMA) {
+func elapseMinute(a EWMA) {
 	for i := 0; i < 12; i++ {
 		a.Tick()
 	}
